@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>FPS Comparison</title>
+<style>
+@import url(http://fonts.googleapis.com/css?family=Source+Code+Pro:400,900);
+body{
+  font-family: 'Source Code Pro', sans-serif;
+  margin: 0;
+  background: #000;
+}
+canvas{display: block;}
+.demo{
+  position: relative;
+}
+.demo_info{
+  color: #FFF;
+  font-size: 20px;
+  position: absolute;
+  bottom:0;
+  right:0;
+}
+select, option{
+  font-size: 20px;
+  font-family: inherit;
+}
+</style>
+</head>
+<body>
+
+<div id="demo1" class="demo">
+  <div class="demo_info">
+    set: <select onchange="fpsDemo1.fps=this.value">
+      <option>15</option>
+      <option selected>20</option>
+      <option>30</option>
+      <option>60</option>
+    </select><br>
+    actual: <span class="demo_counter"></span>FPS
+  </div>
+</div>
+
+<div id="demo2" class="demo">
+  <div class="demo_info">
+    set: <select onchange="fpsDemo2.fps=this.value">
+      <option>15</option>
+      <option>20</option>
+      <option>30</option>
+      <option selected>60</option>
+    </select><br>
+    actual: <span class="demo_counter"></span>FPS
+  </div>
+</div>
+
+<script src="//ajax.googleapis.com/ajax/libs/threejs/r67/three.min.js"></script>
+<script>
+
+var clock = new THREE.Clock();
+var fpsDemo1 = new FpsDemo( document.getElementById( 'demo1' ), 20 );
+var fpsDemo2 = new FpsDemo( document.getElementById( 'demo2' ), 60 );
+
+function FpsDemo ( el, fps ) {
+
+  this.fps = fps;
+
+  var that = this,
+      width = window.innerWidth,
+      height = window.innerHeight / 2,
+      scene, camera, renderer, bunny,
+      light, directionalLight,
+      loader,
+      $counter,
+      lastTime;
+      
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera( 40, width / height, 0.1, 100 );
+  camera.position.set( 0, .1, .5 );
+  renderer = new THREE.WebGLRenderer(); renderer.setSize( width, height );
+  el.appendChild( renderer.domElement );
+  bunny = new THREE.Object3D();
+
+  light = new THREE.AmbientLight( 0x404040 );
+  scene.add( light );
+
+  directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+  directionalLight.position.set( 0, 1, 0 );
+  scene.add( directionalLight );
+
+  loader = new THREE.JSONLoader();
+  loader.load( 'bunny.js', function ( geo, mat ) {
+
+    bunny = new THREE.Mesh(
+      geo,
+      new THREE.MeshFaceMaterial( mat )
+    );
+
+    scene.add( bunny );
+
+  } );
+
+  $counter = el.querySelector( '.demo_counter' );
+  lastTime = clock.getElapsedTime();
+
+  ;( function updateFrame () {
+
+    requestAnimationFrame( updateFrame );
+    var elapsed = clock.getElapsedTime();
+    var interval = 1000 / that.fps;
+
+    if( elapsed - lastTime >= ( interval - 1 ) * 0.97 * 0.001 ){
+
+      $counter.innerHTML = ( 1 / (elapsed - lastTime ) )|0;
+      lastTime = clock.getElapsedTime();
+      camera.position.x = Math.sin( elapsed * 2 ) * 0.5;
+      renderer.render( scene, camera );
+
+    }
+
+  } )();
+
+}
+
+</script>
+</body>
+</html>
